@@ -19,7 +19,7 @@ import { EmailPreviewModal } from './components/EmailPreviewModal';
 import { ReceiptDetailsModal } from './components/ReceiptDetailsModal';
 import { TemplateManagerModal } from './components/TemplateManagerModal';
 
-import { SellerTemplate, SapRawRow, ProcessingResult, SellerSummary } from './types';
+import { SellerTemplate, SapRawRow, ProcessingResult, SellerSummary, GtGroup } from './types';
 import { DEFAULT_SELLERS_TEMPLATE } from './data/defaultTemplate';
 import {
   parseSapExcel,
@@ -34,6 +34,7 @@ import {
   downloadEmlFile,
   downloadExcelReport,
   openOutlookDraftMessage,
+  openIndividualGtOutlookDraft,
   triggerDownload
 } from './utils/exporter';
 
@@ -62,6 +63,7 @@ export default function App() {
 
   // Modais
   const [isEmailPreviewOpen, setIsEmailPreviewOpen] = useState(false);
+  const [previewTargetGt, setPreviewTargetGt] = useState<GtGroup | null>(null);
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [successNotification, setSuccessNotification] = useState<string | null>(null);
 
@@ -196,6 +198,31 @@ export default function App() {
     }
   };
 
+  // Envio de email individual por GT para o Novo Outlook para Windows (Técnica RVV)
+  const handleSendIndividualGt = (gtGroup: GtGroup) => {
+    if (!processingResult) return;
+    openIndividualGtOutlookDraft(processingResult, gtGroup);
+    const gtName = gtGroup.nomeGt || gtGroup.emailGt;
+    setSuccessNotification(
+      `Email individual para ${gtName} gerado com sucesso! A abrir nova mensagem no Novo Outlook com gráfico da equipa e tabela formatada.`
+    );
+    setTimeout(() => setSuccessNotification(null), 6000);
+    try {
+      confetti({
+        particleCount: 50,
+        spread: 50,
+        origin: { y: 0.7 }
+      });
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleOpenEmailPreview = (targetGt?: GtGroup) => {
+    setPreviewTargetGt(targetGt || null);
+    setIsEmailPreviewOpen(true);
+  };
+
   // Exportação EML direta
   const handleDownloadEml = () => {
     if (!processingResult) return;
@@ -216,8 +243,9 @@ export default function App() {
         processingDate={processingDate}
         onDateChange={setProcessingDate}
         result={processingResult}
-        onOpenEmailPreview={() => setIsEmailPreviewOpen(true)}
+        onOpenEmailPreview={handleOpenEmailPreview}
         onSendEmail={handleSendEmail}
+        onSendIndividualGt={handleSendIndividualGt}
         onDownloadZip={handleDownloadZip}
         onDownloadEml={handleDownloadEml}
         onOpenTemplateModal={() => setIsTemplateModalOpen(true)}
@@ -307,6 +335,7 @@ export default function App() {
               selectedGtFilter={selectedGtFilter}
               onSelectGtFilter={setSelectedGtFilter}
               onOpenReceiptDetails={(seller) => setSelectedSellerForAudit(seller)}
+              onSendIndividualGt={handleSendIndividualGt}
             />
           </>
         )}
@@ -352,9 +381,14 @@ export default function App() {
       {processingResult && (
         <EmailPreviewModal
           isOpen={isEmailPreviewOpen}
-          onClose={() => setIsEmailPreviewOpen(false)}
+          onClose={() => {
+            setIsEmailPreviewOpen(false);
+            setPreviewTargetGt(null);
+          }}
           result={processingResult}
+          initialGtGroup={previewTargetGt}
           onSendEmail={handleSendEmail}
+          onSendIndividualGt={handleSendIndividualGt}
         />
       )}
 

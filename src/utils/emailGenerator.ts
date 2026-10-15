@@ -2,7 +2,8 @@ import { ProcessingResult, GtGroup } from '../types';
 import { FIXED_CC_EMAILS } from '../data/defaultTemplate';
 import {
   generateTop10VendedoresChartImage,
-  generateRankingGtChartImage
+  generateRankingGtChartImage,
+  generateTeamRankingChartImage
 } from './chartImageGenerator';
 
 export interface EmailData {
@@ -13,6 +14,7 @@ export interface EmailData {
   plainTextBody: string;
   chartTop10Base64?: string;
   chartRankingGtBase64?: string;
+  chartTeamRankingBase64?: string;
 }
 
 /**
@@ -488,6 +490,443 @@ export function generateEmlString(emailData: EmailData, result?: ProcessingResul
   }
 
   // Fallback caso não haja imagens
+  const lines = [
+    'X-Unsent: 1',
+    'From: "Controlo de Recibos Anulados" <noreply@sumolcompal.pt>',
+    `To: ${toHeader}`,
+    `Cc: ${ccHeader}`,
+    `Subject: ${encodeHeaderSubject(emailData.subject)}`,
+    `Date: ${dateStr}`,
+    'MIME-Version: 1.0',
+    `Content-Type: multipart/alternative; boundary="${boundaryMixed}"`,
+    '',
+    'This is a multi-part message in MIME format.',
+    '',
+    `--${boundaryMixed}`,
+    'Content-Type: text/plain; charset=UTF-8',
+    'Content-Transfer-Encoding: base64',
+    '',
+    encodeMimeBase64(emailData.plainTextBody),
+    '',
+    `--${boundaryMixed}`,
+    'Content-Type: text/html; charset=UTF-8',
+    'Content-Transfer-Encoding: base64',
+    '',
+    encodeMimeBase64(emlHtmlBody),
+    '',
+    `--${boundaryMixed}--`,
+    ''
+  ];
+
+  return lines.join('\r\n');
+}
+
+/**
+ * =========================================================================
+ * FUNCIONALIDADE DE ENVIO INDIVIDUAL POR GT
+ * Gera email filtrado exclusivamente para a equipa do GT selecionado
+ * =========================================================================
+ */
+
+export interface IndividualGtHtmlOptions {
+  teamChartImg?: string;
+  isForEml?: boolean;
+}
+
+/**
+ * Gera o HTML completo do email individual para um GT específico.
+ * Não inclui informação global (Top 10 vendedores ou Ranking GT global).
+ * Inclui:
+ * 1. Cabeçalho normal do relatório
+ * 2. Texto introdutório
+ * 3. Identificação do GT selecionado (Nome GT)
+ * 4. Gráfico "Ranking da Equipa"
+ * 5. Tabela completa da equipa (todos os vendedores, incluindo 0s)
+ * 6. Bloco TOTAL GT (Últimos 5 Dias Úteis, Acumulado Ano, Número de Vendedores)
+ * 7. Assinatura: Com os melhores cumprimentos, Equipa AFSN
+ */
+export function generateIndividualGtEmailHtml(
+  result: ProcessingResult,
+  gtGroup: GtGroup,
+  options?: IndividualGtHtmlOptions
+): string {
+  const { businessDaysRange, processingDate } = result;
+  const gtDisplayName = gtGroup.nomeGt || gtGroup.emailGt;
+
+  const formatDatePt = (d: Date) =>
+    d.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+  // Gera a imagem do gráfico da equipa se não fornecida
+  const teamChartImg =
+    options?.teamChartImg ??
+    generateTeamRankingChartImage(gtGroup.vendedores, gtDisplayName);
+
+  const teamChartSrc = options?.isForEml ? 'cid:chart_ranking_equipa' : teamChartImg;
+
+  // Linhas da tabela de vendedores da equipa
+  const rowsHtml = gtGroup.vendedores
+    .map((s) => {
+      let rankBadgeBg = '#f3f4f6';
+      let rankBadgeColor = '#374151';
+      let rowBg = '#ffffff';
+      let statusBadge = '';
+
+      if (s.ultimos5DiasUteis === 0) {
+        statusBadge = `<span style="display:inline-block; padding:2px 8px; font-size:11px; font-weight:600; border-radius:12px; background-color:#dcfce7; color:#15803d; border:1px solid #bbf7d0;">✓ 0 Anulações (5d)</span>`;
+      }
+
+      if (s.ranking <= 3 && s.acumuladoAno > 0) {
+        rankBadgeBg = '#fee2e2';
+        rankBadgeColor = '#b91c1c';
+        rowBg = '#fff8f8';
+      } else if (s.acumuladoAno > 0) {
+        rankBadgeBg = '#fef3c7';
+        rankBadgeColor = '#b45309';
+      }
+
+      const recentCellBg = s.ultimos5DiasUteis === 0 ? '#f0fdf4' : '#ffffff';
+      const recentTextColor = s.ultimos5DiasUteis === 0 ? '#16a34a' : '#1f2937';
+
+      return `
+        <tr style="background-color:${rowBg}; border-bottom:1px solid #e5e7eb;">
+          <td style="padding:10px 12px; text-align:center; font-weight:bold; font-size:13px; color:#111827;">
+            <span style="display:inline-block; min-width:24px; padding:3px 8px; border-radius:12px; background-color:${rankBadgeBg}; color:${rankBadgeColor}; font-weight:700;">
+              #${s.ranking}
+            </span>
+          </td>
+          <td style="padding:10px 12px; text-align:left; font-family:'Courier New', monospace; font-weight:bold; color:#1e3a8a; font-size:13px;">
+            ${s.codigo}
+          </td>
+          <td style="padding:10px 12px; text-align:left; font-size:13px; color:#1f2937;">
+            <strong>${s.nomeVendedor}</strong>
+            ${statusBadge ? `<div style="margin-top:3px;">${statusBadge}</div>` : ''}
+          </td>
+          <td style="padding:10px 12px; text-align:center; font-size:13px; font-weight:700; background-color:${recentCellBg}; color:${recentTextColor}; border-left:1px solid #f3f4f6; border-right:1px solid #f3f4f6;">
+            ${s.ultimos5DiasUteis}
+          </td>
+          <td style="padding:10px 12px; text-align:center; font-size:13px; font-weight:700; color:#111827;">
+            ${s.acumuladoAno}
+          </td>
+        </tr>
+      `;
+    })
+    .join('');
+
+  return `<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resumo Semanal de Recibos Anulados | ${gtDisplayName}</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f3f4f6; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color:#1f2937; line-height:1.5;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f4f6; padding:24px 12px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" style="max-width:760px; background-color:#ffffff; border-radius:10px; border:1px solid #e5e7eb; overflow:hidden; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
+          
+          <!-- Top Banner Corporativo -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); background-color:#1e3a8a; padding:24px 28px; color:#ffffff;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td>
+                    <h1 style="margin:0; font-size:22px; font-weight:800; color:#ffffff; letter-spacing:-0.3px;">
+                      CONTROLO DE RECIBOS ANULADOS
+                    </h1>
+                    <div style="margin-top:6px; font-size:13px; color:#e0e7ff;">
+                      Resumo Semanal de Recibos Anulados
+                    </div>
+                  </td>
+                  <td style="text-align:right; vertical-align:middle;">
+                    <div style="background-color:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); border-radius:6px; padding:6px 12px; display:inline-block; text-align:center;">
+                      <div style="font-size:10px; text-transform:uppercase; color:#bfdbfe; font-weight:600;">Data Processamento</div>
+                      <div style="font-size:13px; font-weight:700; color:#ffffff;">${formatDatePt(processingDate)}</div>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Corpo do Email -->
+          <tr>
+            <td style="padding:28px 28px 32px 28px; font-size:14px; color:#374151;">
+              <p style="margin:0 0 16px 0; font-size:15px; color:#111827;">
+                Boa tarde, ${gtDisplayName},
+              </p>
+              
+              <p style="margin:0 0 14px 0; line-height:1.6;">
+                Segue abaixo o resumo dos recibos anulados por vendedor da sua equipa.
+              </p>
+              
+              <div style="background-color:#f8fafc; border-left:4px solid #3b82f6; border-radius:4px; padding:12px 16px; margin:0 0 16px 0;">
+                <p style="margin:0 0 6px 0; font-weight:600; color:#1e293b;">Para cada vendedor são apresentados:</p>
+                <ul style="margin:0; padding-left:20px; color:#475569;">
+                  <li style="margin-bottom:4px;">
+                    <strong>Recibos anulados nos últimos 5 dias úteis</strong> (${formatDatePt(businessDaysRange.start)} a ${formatDatePt(businessDaysRange.end)});
+                  </li>
+                  <li>
+                    <strong>Recibos anulados acumulados desde o início do ano</strong> (desde 01/01/${processingDate.getFullYear()}).
+                  </li>
+                </ul>
+              </div>
+
+              <p style="margin:0 0 24px 0; line-height:1.6; color:#4b5563;">
+                Esta informação pretende proporcionar uma visão consolidada da atividade de anulações e facilitar o acompanhamento dos pedidos de anulação efetuados pelos comerciais.
+              </p>
+
+              <!-- Identificação Visual do GT Selecionado -->
+              <div style="margin:24px 0 18px 0; background-color:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:12px 18px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="text-align:left; vertical-align:middle;">
+                      <span style="font-size:16px; font-weight:800; color:#1e3a8a; letter-spacing:0.3px;">
+                        GT: <span style="color:#1d4ed8;">${gtDisplayName}</span>
+                      </span>
+                    </td>
+                    <td style="text-align:right; vertical-align:middle; color:#475569; font-size:12px;">
+                      <span>Vendedores: <strong>${gtGroup.totalVendedores}</strong></span> |
+                      <span>5 Dias: <strong>${gtGroup.totalUltimos5Dias}</strong></span> |
+                      <span>Acumulado: <strong>${gtGroup.totalAcumuladoAno}</strong></span>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+
+              <!-- ============================================== -->
+              <!-- GRÁFICO DO GT: Ranking da Equipa               -->
+              <!-- ============================================== -->
+              ${
+                teamChartSrc
+                  ? `
+              <div style="margin:0 0 28px 0; text-align:center;">
+                <div style="font-size:13px; font-weight:700; color:#1e3a8a; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; text-align:left;">
+                  Gráfico da Equipa &bull; Ranking da Equipa
+                </div>
+                <img src="${teamChartSrc}" alt="Ranking da Equipa - ${gtDisplayName}" width="704" style="width:100%; max-width:704px; height:auto; display:block; margin:0 auto; border-radius:10px; border:1px solid #e2e8f0; box-shadow:0 1px 3px rgba(0,0,0,0.05);" />
+              </div>
+              `
+                  : ''
+              }
+
+              <!-- ============================================== -->
+              <!-- TABELA DA EQUIPA                               -->
+              <!-- ============================================== -->
+              <div style="font-size:14px; font-weight:700; color:#0f172a; text-transform:uppercase; letter-spacing:0.5px; margin:28px 0 14px 0; border-top:2px solid #e2e8f0; padding-top:16px;">
+                Tabela da Equipa &bull; ${gtDisplayName}
+              </div>
+
+              <div style="margin-bottom:24px; background-color:#ffffff; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                  <thead>
+                    <tr style="background-color:#f8fafc; border-bottom:2px solid #cbd5e1; font-size:12px; color:#475569; text-transform:uppercase; letter-spacing:0.5px;">
+                      <th style="padding:10px 12px; text-align:center; width:70px;">Ranking</th>
+                      <th style="padding:10px 12px; text-align:left; width:80px;">Código</th>
+                      <th style="padding:10px 12px; text-align:left;">Vendedor</th>
+                      <th style="padding:10px 12px; text-align:center; width:150px; background-color:#f1f5f9;">Últimos 5 Dias Úteis</th>
+                      <th style="padding:10px 12px; text-align:center; width:130px;">Acumulado Ano</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${rowsHtml}
+                  </tbody>
+                  <tfoot>
+                    <tr style="background-color:#f1f5f9; font-weight:bold; border-top:2px solid #cbd5e1; font-size:12px; color:#1e293b;">
+                      <td colspan="3" style="padding:10px 12px; text-align:right;">Subtotal ${gtDisplayName}:</td>
+                      <td style="padding:10px 12px; text-align:center; color:#1e40af;">${gtGroup.totalUltimos5Dias}</td>
+                      <td style="padding:10px 12px; text-align:center; color:#0f172a;">${gtGroup.totalAcumuladoAno}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+
+              <!-- ============================================== -->
+              <!-- BLOCO TOTAL GT                                 -->
+              <!-- ============================================== -->
+              <div style="background-color:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:16px 20px; margin-bottom:28px;">
+                <div style="font-size:13px; font-weight:800; color:#166534; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">
+                  TOTAL GT
+                </div>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:13px; color:#1e293b;">
+                  <tr>
+                    <td style="padding:4px 0;"><strong>Últimos 5 Dias Úteis:</strong> <span style="color:#15803d; font-weight:700;">${gtGroup.totalUltimos5Dias}</span></td>
+                    <td style="padding:4px 0;"><strong>Acumulado Ano:</strong> <span style="color:#166534; font-weight:700;">${gtGroup.totalAcumuladoAno}</span></td>
+                    <td style="padding:4px 0;"><strong>Número de Vendedores:</strong> <span style="font-weight:700;">${gtGroup.totalVendedores}</span></td>
+                  </tr>
+                </table>
+              </div>
+
+              <!-- Assinatura Final -->
+              <p style="margin:28px 0 0 0; color:#111827; font-weight:600; line-height:1.6;">
+                Com os melhores cumprimentos,<br><br>
+                <span style="font-weight:600; color:#111827;">Equipa AFSN</span>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+/**
+ * Gera a versão em texto simples do email individual do GT
+ */
+export function generateIndividualGtEmailPlainText(
+  result: ProcessingResult,
+  gtGroup: GtGroup
+): string {
+  const { businessDaysRange, processingDate } = result;
+  const gtDisplayName = gtGroup.nomeGt || gtGroup.emailGt;
+
+  const formatDatePt = (d: Date) =>
+    d.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+  let text = `Boa tarde, ${gtDisplayName},\n\n`;
+  text += `Segue abaixo o resumo dos recibos anulados por vendedor da sua equipa.\n\n`;
+  text += `Para cada vendedor são apresentados:\n\n`;
+  text += `• Recibos anulados nos últimos 5 dias úteis (${formatDatePt(businessDaysRange.start)} a ${formatDatePt(businessDaysRange.end)})\n`;
+  text += `• Recibos anulados acumulados desde o início do ano (desde 01/01/${processingDate.getFullYear()})\n\n`;
+  text += `Esta informação pretende proporcionar uma visão consolidada da atividade de anulações e facilitar o acompanhamento dos pedidos de anulação efetuados pelos comerciais.\n\n`;
+
+  text += `====================================================\n`;
+  text += `GT: ${gtDisplayName}\n`;
+  text += `====================================================\n\n`;
+
+  // Gráfico da Equipa (Representação textual)
+  text += `====================================================\n`;
+  text += `RANKING DA EQUIPA\n`;
+  text += `====================================================\n`;
+  gtGroup.vendedores.forEach((v, idx) => {
+    text += `${idx + 1}. [${v.codigo}] ${v.nomeVendedor} - 5d: ${v.ultimos5DiasUteis} | Acumulado Ano: ${v.acumuladoAno}\n`;
+  });
+  text += `\n`;
+
+  // Tabela da Equipa
+  text += `====================================================\n`;
+  text += `TABELA DA EQUIPA\n`;
+  text += `====================================================\n`;
+  text += `Ranking | Código | Vendedor               | Últimos 5 Dias | Acumulado Ano\n`;
+  text += `----------------------------------------------------\n`;
+  for (const s of gtGroup.vendedores) {
+    const rank = String(s.ranking).padEnd(7);
+    const code = s.codigo.padEnd(6);
+    const name = s.nomeVendedor.slice(0, 22).padEnd(22);
+    const ult5 = String(s.ultimos5DiasUteis).padStart(14);
+    const acum = String(s.acumuladoAno).padStart(14);
+    text += `${rank} | ${code} | ${name} | ${ult5} | ${acum}\n`;
+  }
+  text += `----------------------------------------------------\n\n`;
+
+  // Total GT
+  text += `TOTAL GT\n`;
+  text += `Últimos 5 Dias Úteis: ${gtGroup.totalUltimos5Dias}\n`;
+  text += `Acumulado Ano: ${gtGroup.totalAcumuladoAno}\n`;
+  text += `Número de Vendedores: ${gtGroup.totalVendedores}\n\n`;
+
+  text += `Com os melhores cumprimentos,\n\nEquipa AFSN\n`;
+
+  return text;
+}
+
+/**
+ * Monta o pacote de dados do email individual para um GT
+ */
+export function buildIndividualGtEmailData(
+  result: ProcessingResult,
+  gtGroup: GtGroup
+): EmailData {
+  const to = [gtGroup.emailGt.trim().toLowerCase()];
+  const cc = FIXED_CC_EMAILS;
+  const gtDisplayName = gtGroup.nomeGt || gtGroup.emailGt;
+  const subject = `Resumo Semanal de Recibos Anulados | ${gtDisplayName}`;
+
+  const teamChartPng = generateTeamRankingChartImage(gtGroup.vendedores, gtDisplayName);
+
+  const htmlBody = generateIndividualGtEmailHtml(result, gtGroup, {
+    teamChartImg: teamChartPng,
+    isForEml: false
+  });
+
+  const plainTextBody = generateIndividualGtEmailPlainText(result, gtGroup);
+
+  const chartTeamRankingBase64 = teamChartPng
+    ? teamChartPng.replace(/^data:image\/png;base64,/, '')
+    : undefined;
+
+  return {
+    to,
+    cc,
+    subject,
+    htmlBody,
+    plainTextBody,
+    chartTeamRankingBase64
+  };
+}
+
+/**
+ * Gera o ficheiro .EML padrão RFC 822 para envio individual do GT.
+ * Abre diretamente no Novo Outlook em modo de composição (X-Unsent: 1)
+ * com o corpo HTML totalmente renderizado e o gráfico "Ranking da Equipa" inline.
+ */
+export function generateIndividualGtEmlString(
+  emailData: EmailData,
+  result: ProcessingResult,
+  gtGroup: GtGroup
+): string {
+  const boundaryRel = `----=_NextPart_Rel_${Date.now()}_${Math.random().toString(36).substring(2)}`;
+  const dateStr = new Date().toUTCString();
+
+  const toHeader = emailData.to.join(', ');
+  const ccHeader = emailData.cc.join(', ');
+
+  const hasChart = Boolean(emailData.chartTeamRankingBase64);
+
+  // Gera a versão HTML com Content-ID para EML
+  const emlHtmlBody = generateIndividualGtEmailHtml(result, gtGroup, {
+    isForEml: true
+  });
+
+  if (hasChart) {
+    const lines = [
+      'X-Unsent: 1',
+      'From: "Controlo de Recibos Anulados" <noreply@sumolcompal.pt>',
+      `To: ${toHeader}`,
+      `Cc: ${ccHeader}`,
+      `Subject: ${encodeHeaderSubject(emailData.subject)}`,
+      `Date: ${dateStr}`,
+      'MIME-Version: 1.0',
+      `Content-Type: multipart/related; boundary="${boundaryRel}"`,
+      '',
+      'This is a multi-part message in MIME format.',
+      '',
+      `--${boundaryRel}`,
+      'Content-Type: text/html; charset=UTF-8',
+      'Content-Transfer-Encoding: base64',
+      '',
+      encodeMimeBase64(emlHtmlBody),
+      '',
+      `--${boundaryRel}`,
+      'Content-Type: image/png; name="chart_ranking_equipa.png"',
+      'Content-Transfer-Encoding: base64',
+      'Content-ID: <chart_ranking_equipa>',
+      'Content-Disposition: inline; filename="chart_ranking_equipa.png"',
+      '',
+      encodeMimeBase64Raw(emailData.chartTeamRankingBase64!),
+      '',
+      `--${boundaryRel}--`,
+      ''
+    ];
+
+    return lines.join('\r\n');
+  }
+
+  // Fallback caso não haja gráfico
+  const boundaryMixed = `----=_NextPart_Mixed_${Date.now()}_${Math.random().toString(36).substring(2)}`;
   const lines = [
     'X-Unsent: 1',
     'From: "Controlo de Recibos Anulados" <noreply@sumolcompal.pt>',

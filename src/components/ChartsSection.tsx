@@ -152,7 +152,7 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
         </div>
       </div>
 
-      {/* 2. Top 10 GT por Volume de Anulações */}
+      {/* 2. Ranking GT (Tabela Compacta) */}
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs flex flex-col justify-between">
         <div>
           <div className="flex items-center justify-between mb-4">
@@ -165,7 +165,7 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
                   Ranking GT
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Volume total de anulações consolidado por equipa GT (todos os GTs)
+                  Tabela compacta com todos os Gestores de Território
                 </p>
               </div>
             </div>
@@ -175,57 +175,81 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
             </span>
           </div>
 
-          <div className="space-y-2.5">
-            {sortedGts.map((g, idx) => {
-              const currentVal = metricMode === 'acumulado' ? g.acumulado : g.ultimos5Dias;
-              const barPercent = Math.min(100, Math.round((currentVal / maxGtVal) * 100));
-
-              return (
-                <div
-                  key={g.emailGt}
-                  onClick={() => onSelectGt?.(g.emailGt)}
-                  className="group p-2 rounded-lg hover:bg-slate-50 transition cursor-pointer"
-                >
-                  <div className="flex items-center justify-between text-xs mb-1">
-                    <div className="flex items-center gap-2 truncate pr-2">
-                      <span className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 text-[11px] shrink-0">
-                        {idx + 1}
-                      </span>
-                      <span className="font-semibold text-slate-800 truncate">
+          {/* Tabela Compacta Ranking GT */}
+          <div className="overflow-x-auto rounded-xl border border-slate-200/90 shadow-2xs">
+            <table className="w-full text-xs text-left">
+              <thead className="bg-slate-900 text-white uppercase text-[11px] tracking-wider">
+                <tr>
+                  <th className="py-2.5 px-3 text-center w-12 text-white">Pos</th>
+                  <th className="py-2.5 px-3 text-left text-white">GT</th>
+                  <th className="py-2.5 px-3 text-right text-white">Vend.</th>
+                  <th className="py-2.5 px-3 text-right text-white">5 Dias</th>
+                  <th className="py-2.5 px-3 text-right text-white">Ano</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 bg-white">
+                {sortedGts.map((g, idx) => {
+                  const isTop3 = idx < 3;
+                  return (
+                    <tr
+                      key={g.emailGt}
+                      onClick={() => onSelectGt?.(g.emailGt)}
+                      className={`hover:bg-blue-50/60 transition cursor-pointer ${
+                        isTop3 ? 'bg-rose-50/30' : (idx % 2 === 1 ? 'bg-slate-50/40' : 'bg-white')
+                      }`}
+                    >
+                      <td className="py-2 px-3 text-center">
+                        <span
+                          className={`inline-flex items-center justify-center w-5 h-5 rounded-full font-bold text-[11px] ${
+                            isTop3 ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-600'
+                          }`}
+                        >
+                          {idx + 1}
+                        </span>
+                      </td>
+                      <td className="py-2 px-3 font-semibold text-slate-800">
                         {g.nomeGt || g.emailGt}
-                      </span>
-                      <span className="text-[11px] text-slate-400 shrink-0">
-                        ({g.vendedoresCount} vend.)
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span className="text-[11px] text-slate-500">
-                        5d: <strong className="text-slate-700">{g.ultimos5Dias}</strong>
-                      </span>
-                      <span className="font-bold text-slate-900 min-w-8 text-right">
-                        {currentVal}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Progress bar */}
-                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 transition-all duration-500"
-                      style={{ width: `${barPercent}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
+                      </td>
+                      <td className="py-2 px-3 text-right text-slate-600 font-medium">
+                        {g.vendedoresCount}
+                      </td>
+                      <td className="py-2 px-3 text-right font-bold text-blue-700">
+                        {g.ultimos5Dias === 0 ? (
+                          <span className="text-emerald-600">0</span>
+                        ) : (
+                          g.ultimos5Dias
+                        )}
+                      </td>
+                      <td className="py-2 px-3 text-right font-bold text-slate-900">
+                        {g.acumulado}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+              <tfoot className="bg-slate-100/90 font-bold text-slate-900 border-t-2 border-slate-200">
+                <tr>
+                  <td colSpan={2} className="py-2.5 px-3 text-left uppercase text-[11px] font-bold text-slate-800">
+                    Total
+                  </td>
+                  <td className="py-2.5 px-3 text-right font-bold text-slate-900">
+                    {allGts.reduce((sum, g) => sum + g.vendedoresCount, 0)}
+                  </td>
+                  <td className="py-2.5 px-3 text-right font-bold text-blue-800">
+                    {allGts.reduce((sum, g) => sum + g.ultimos5Dias, 0)}
+                  </td>
+                  <td className="py-2.5 px-3 text-right font-bold text-slate-900">
+                    {allGts.reduce((sum, g) => sum + g.acumulado, 0)}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
         </div>
 
-        <div className="mt-3 pt-3 border-t border-slate-100 text-right">
-          <span className="text-[11px] text-slate-400">
-            * Clica num GT para filtrar a vista de equipa abaixo
-          </span>
+        <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+          <span>* Clica num GT para filtrar a vista de equipa abaixo</span>
+          <span className="font-semibold text-slate-500">Ordenado por Acumulado</span>
         </div>
       </div>
 

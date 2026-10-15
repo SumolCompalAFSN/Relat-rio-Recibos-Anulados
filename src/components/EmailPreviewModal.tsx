@@ -14,41 +14,88 @@ import {
   Smartphone,
   Send
 } from 'lucide-react';
-import { ProcessingResult } from '../types';
-import { buildEmailData, generateEmlString } from '../utils/emailGenerator';
+import { ProcessingResult, GtGroup } from '../types';
+import {
+  buildEmailData,
+  generateEmlString,
+  buildIndividualGtEmailData,
+  generateIndividualGtEmlString
+} from '../utils/emailGenerator';
 import {
   copyRichTextToClipboard,
   downloadEmlFile,
   downloadHtmlFile,
-  downloadZipPackage
+  downloadZipPackage,
+  openIndividualGtOutlookDraft,
+  downloadIndividualGtEmlFile
 } from '../utils/exporter';
 
 interface EmailPreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   result: ProcessingResult;
+  initialGtGroup?: GtGroup | null;
   onSendEmail?: () => void;
+  onSendIndividualGt?: (gtGroup: GtGroup) => void;
 }
 
 export const EmailPreviewModal: React.FC<EmailPreviewModalProps> = ({
   isOpen,
   onClose,
   result,
-  onSendEmail
+  initialGtGroup,
+  onSendEmail,
+  onSendIndividualGt
 }) => {
   const [activeTab, setActiveTab] = useState<'preview' | 'html' | 'text'>('preview');
   const [deviceMode, setDeviceMode] = useState<'desktop' | 'mobile'>('desktop');
   const [copiedSuccess, setCopiedSuccess] = useState<string | null>(null);
+  const [selectedGtEmail, setSelectedGtEmail] = useState<string>(initialGtGroup?.emailGt || 'ALL');
+
+  React.useEffect(() => {
+    if (initialGtGroup) {
+      setSelectedGtEmail(initialGtGroup.emailGt);
+    } else {
+      setSelectedGtEmail('ALL');
+    }
+  }, [initialGtGroup, isOpen]);
 
   if (!isOpen) return null;
 
-  const emailData = buildEmailData(result);
+  const selectedGtGroup =
+    selectedGtEmail !== 'ALL'
+      ? result.gtGroups.find((g) => g.emailGt === selectedGtEmail) || null
+      : null;
+
+  const emailData = selectedGtGroup
+    ? buildIndividualGtEmailData(result, selectedGtGroup)
+    : buildEmailData(result);
 
   const handleCopyRichText = async () => {
-    const success = await copyRichTextToClipboard(result);
-    if (success) {
-      setCopiedSuccess('rich');
-      setTimeout(() => setCopiedSuccess(null), 3000);
+    try {
+      if (typeof ClipboardItem !== 'undefined' && navigator.clipboard && navigator.clipboard.write) {
+        const htmlBlob = new Blob([emailData.htmlBody], { type: 'text/html' });
+        const textBlob = new Blob([emailData.plainTextBody], { type: 'text/plain' });
+        const item = new ClipboardItem({
+          'text/html': htmlBlob,
+          'text/plain': textBlob
+        });
+        await navigator.clipboard.write([item]);
+        setCopiedSuccess('rich');
+        setTimeout(() => setCopiedSuccess(null), 3000);
+      } else {
+        await navigator.clipboard.writeText(emailData.htmlBody);
+        setCopiedSuccess('rich');
+        setTimeout(() => setCopiedSuccess(null), 3000);
+      }
+    } catch {
+      try {
+        await navigator.clipboard.writeText(emailData.plainTextBody);
+        setCopiedSuccess('rich');
+        setTimeout(() => setCopiedSuccess(null), 3000);
+      } catch {
+        // ignore
+      }
     }
   };
 
@@ -59,6 +106,29 @@ export const EmailPreviewModal: React.FC<EmailPreviewModalProps> = ({
       setTimeout(() => setCopiedSuccess(null), 3000);
     } catch {
       // fallback
+    }
+  };
+
+  const handleSendCurrent = () => {
+    onClose();
+    if (selectedGtGroup) {
+      if (onSendIndividualGt) {
+        onSendIndividualGt(selectedGtGroup);
+      } else {
+        openIndividualGtOutlookDraft(result, selectedGtGroup);
+      }
+    } else {
+      if (onSendEmail) {
+        onSendEmail();
+      }
+    }
+  };
+
+  const handleDownloadCurrentEml = () => {
+    if (selectedGtGroup) {
+      downloadIndividualGtEmlFile(result, selectedGtGroup);
+    } else {
+      downloadEmlFile(result);
     }
   };
 
@@ -75,22 +145,46 @@ export const EmailPreviewModal: React.FC<EmailPreviewModalProps> = ({
       <div className="bg-white w-full max-w-5xl h-[92vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200">
         
         {/* Modal Top Header */}
-        <div className="px-5 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+        <div className="px-5 py-3.5 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-3 border-b border-slate-800">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-600 rounded-lg text-white">
+            <div className={`p-2 rounded-lg text-white ${selectedGtGroup ? 'bg-indigo-600' : 'bg-blue-600'}`}>
               <Mail className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white leading-tight">
-                Pré-visualização do Email Consolidado
+              <h3 className="text-base font-bold text-white leading-tight flex items-center gap-2">
+                <span>{selectedGtGroup ? `Email Individual • ${selectedGtGroup.nomeGt || selectedGtGroup.emailGt}` : 'Email Consolidado (Todos os GTs)'}</span>
+                {selectedGtGroup && (
+                  <span className="text-[10px] bg-indigo-500/30 text-indigo-200 border border-indigo-400/30 px-2 py-0.5 rounded-full font-bold">
+                    Individual GT
+                  </span>
+                )}
               </h3>
               <p className="text-xs text-slate-400">
-                Email único pronto para envio aos GTs com CC corporativo da Sumol+Compal
+                {selectedGtGroup
+                  ? `Destinatário único: ${selectedGtGroup.emailGt} com CC institucional`
+                  : 'Destinatários: Todos os GTs distintos com CC corporativo da Sumol+Compal'}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            {/* Seletor de Modo: Geral vs GT Específico */}
+            <div className="flex items-center gap-1.5 bg-slate-800 px-2.5 py-1.5 rounded-lg border border-slate-700">
+              <span className="text-xs text-slate-400 font-medium">Relatório:</span>
+              <select
+                value={selectedGtEmail}
+                onChange={(e) => setSelectedGtEmail(e.target.value)}
+                className="bg-transparent text-white text-xs font-semibold focus:outline-none cursor-pointer pr-1"
+              >
+                <option value="ALL" className="bg-slate-900 text-white">Geral (Todos os GTs)</option>
+                {result.gtGroups.map((g) => (
+                  <option key={g.emailGt} value={g.emailGt} className="bg-slate-900 text-white">
+                    GT: {g.nomeGt || g.emailGt}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <button
               type="button"
               onClick={onClose}
@@ -223,20 +317,19 @@ export const EmailPreviewModal: React.FC<EmailPreviewModalProps> = ({
 
           {/* Export & Copy Buttons */}
           <div className="flex flex-wrap items-center gap-2">
-            {onSendEmail && (
-              <button
-                type="button"
-                onClick={() => {
-                  onClose();
-                  onSendEmail();
-                }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold transition shadow-xs ring-1 ring-blue-400/30"
-                title="Criar nova mensagem com formatação HTML completa no Novo Outlook para Windows (Técnica RVV)"
-              >
-                <Send className="w-3.5 h-3.5" />
-                <span>Enviar Email</span>
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={handleSendCurrent}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white font-bold transition shadow-xs ring-1 ${
+                selectedGtGroup
+                  ? 'bg-indigo-600 hover:bg-indigo-500 ring-indigo-400/30'
+                  : 'bg-blue-600 hover:bg-blue-500 ring-blue-400/30'
+              }`}
+              title="Criar nova mensagem com formatação HTML completa no Novo Outlook para Windows (Técnica RVV)"
+            >
+              <Send className="w-3.5 h-3.5" />
+              <span>{selectedGtGroup ? `Enviar GT (${selectedGtGroup.nomeGt || selectedGtGroup.emailGt})` : 'Enviar Email'}</span>
+            </button>
 
             <button
               type="button"
@@ -259,7 +352,7 @@ export const EmailPreviewModal: React.FC<EmailPreviewModalProps> = ({
 
             <button
               type="button"
-              onClick={() => downloadEmlFile(result)}
+              onClick={handleDownloadCurrentEml}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-100 font-medium transition"
               title="Descarregar ficheiro .EML padrão RFC 822"
             >
@@ -267,15 +360,17 @@ export const EmailPreviewModal: React.FC<EmailPreviewModalProps> = ({
               <span>Descarregar .EML</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => downloadZipPackage(result)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition shadow-xs"
-              title="Descarregar ZIP completo com HTML, EML e Excel"
-            >
-              <Archive className="w-3.5 h-3.5" />
-              <span>ZIP Completo</span>
-            </button>
+            {!selectedGtGroup && (
+              <button
+                type="button"
+                onClick={() => downloadZipPackage(result)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition shadow-xs"
+                title="Descarregar ZIP completo com HTML, EML e Excel"
+              >
+                <Archive className="w-3.5 h-3.5" />
+                <span>ZIP Completo</span>
+              </button>
+            )}
 
             <button
               type="button"

@@ -9,7 +9,8 @@ import {
   ChevronUp,
   FileSearch,
   Mail,
-  Users
+  Users,
+  Send
 } from 'lucide-react';
 import { GtGroup, SellerSummary } from '../types';
 
@@ -18,13 +19,15 @@ interface GtConsolidatedTableProps {
   selectedGtFilter: string;
   onSelectGtFilter: (gt: string) => void;
   onOpenReceiptDetails: (seller: SellerSummary) => void;
+  onSendIndividualGt?: (group: GtGroup) => void;
 }
 
 export const GtConsolidatedTable: React.FC<GtConsolidatedTableProps> = ({
   gtGroups,
   selectedGtFilter,
   onSelectGtFilter,
-  onOpenReceiptDetails
+  onOpenReceiptDetails,
+  onSendIndividualGt
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'top3' | 'intermediate' | 'zeroRecent'>('all');
@@ -245,6 +248,20 @@ export const GtConsolidatedTable: React.FC<GtConsolidatedTableProps> = ({
                     <span className="bg-slate-800 px-2.5 py-1 rounded-md text-amber-300 border border-slate-700">
                       Acumulado Ano: <strong className="text-white">{group.totalAcumuladoAno}</strong>
                     </span>
+                    {onSendIndividualGt && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSendIndividualGt(group);
+                        }}
+                        className="bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-1 rounded-md text-xs font-semibold flex items-center gap-1 transition shadow-xs ring-1 ring-indigo-400/30"
+                        title={`Enviar email individual para ${group.nomeGt || group.emailGt} no Novo Outlook (Técnica RVV)`}
+                      >
+                        <Send className="w-3 h-3" />
+                        <span className="hidden sm:inline">Enviar GT</span>
+                      </button>
+                    )}
                     <div className="text-slate-400 pl-1">
                       {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
                     </div>

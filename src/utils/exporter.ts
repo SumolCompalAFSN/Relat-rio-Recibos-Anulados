@@ -1,7 +1,12 @@
 import JSZip from 'jszip';
 import * as XLSX from 'xlsx';
-import { ProcessingResult } from '../types';
-import { buildEmailData, generateEmlString } from './emailGenerator';
+import { ProcessingResult, GtGroup } from '../types';
+import {
+  buildEmailData,
+  generateEmlString,
+  buildIndividualGtEmailData,
+  generateIndividualGtEmlString
+} from './emailGenerator';
 
 /**
  * Dispara o download de um ficheiro Blob no browser
@@ -215,5 +220,57 @@ export function openOutlookDraftMessage(result: ProcessingResult): void {
   const emlContent = generateEmlString(emailData, result);
   const blob = new Blob([emlContent], { type: 'message/rfc822;charset=utf-8' });
   triggerDownload(blob, 'Resumo_Semanal_Recibos_Anulados.eml');
+}
+
+/**
+ * Abre diretamente o Novo Outlook para Windows com uma nova mensagem
+ * formatada em HTML apenas para a equipa do GT selecionado (Técnica RVV).
+ * Preenche TO (Email GT), CC, Assunto e corpo formatado em HTML com gráfico inline.
+ */
+export function openIndividualGtOutlookDraft(
+  result: ProcessingResult,
+  gtGroup: GtGroup
+): void {
+  const emailData = buildIndividualGtEmailData(result, gtGroup);
+  const emlContent = generateIndividualGtEmlString(emailData, result, gtGroup);
+  const blob = new Blob([emlContent], { type: 'message/rfc822;charset=utf-8' });
+  const sanitizedName = (gtGroup.nomeGt || gtGroup.emailGt)
+    .replace(/[^a-zA-Z0-9_\u00C0-\u017F-]/g, '_')
+    .replace(/_+/g, '_');
+  const filename = `Resumo_Recibos_Anulados_${sanitizedName}.eml`;
+  triggerDownload(blob, filename);
+}
+
+/**
+ * Transfere o ficheiro .EML individual de um GT
+ */
+export function downloadIndividualGtEmlFile(
+  result: ProcessingResult,
+  gtGroup: GtGroup
+): void {
+  const emailData = buildIndividualGtEmailData(result, gtGroup);
+  const emlContent = generateIndividualGtEmlString(emailData, result, gtGroup);
+  const blob = new Blob([emlContent], { type: 'message/rfc822;charset=utf-8' });
+  const sanitizedName = (gtGroup.nomeGt || gtGroup.emailGt)
+    .replace(/[^a-zA-Z0-9_\u00C0-\u017F-]/g, '_')
+    .replace(/_+/g, '_');
+  const filename = `Resumo_Recibos_Anulados_${sanitizedName}_${result.processingDate.toISOString().slice(0, 10)}.eml`;
+  triggerDownload(blob, filename);
+}
+
+/**
+ * Transfere o ficheiro .HTML individual de um GT
+ */
+export function downloadIndividualGtHtmlFile(
+  result: ProcessingResult,
+  gtGroup: GtGroup
+): void {
+  const emailData = buildIndividualGtEmailData(result, gtGroup);
+  const blob = new Blob([emailData.htmlBody], { type: 'text/html;charset=utf-8' });
+  const sanitizedName = (gtGroup.nomeGt || gtGroup.emailGt)
+    .replace(/[^a-zA-Z0-9_\u00C0-\u017F-]/g, '_')
+    .replace(/_+/g, '_');
+  const filename = `Resumo_Recibos_Anulados_${sanitizedName}_${result.processingDate.toISOString().slice(0, 10)}.html`;
+  triggerDownload(blob, filename);
 }
 
