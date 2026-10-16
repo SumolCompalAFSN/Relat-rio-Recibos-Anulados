@@ -81,14 +81,10 @@ export const Header: React.FC<HeaderProps> = ({
               <FileCheck className="w-6 h-6 text-white" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold tracking-tight text-white">
+              
+                <h1 className="text-2xl font-bold tracking-tight text-white">
                   CONTROLO DE RECIBOS ANULADOS
                 </h1>
-                <span className="hidden sm:inline-block text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                  SAP GT Analytics
-                </span>
-              </div>
             </div>
           </div>
 
