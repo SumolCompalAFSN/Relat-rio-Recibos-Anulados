@@ -104,8 +104,7 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
             </p>
           </div>
 
-          {/* Quick template download & sample loader */}
-          <div className="flex flex-wrap items-center justify-between gap-2 mt-3 pt-3 border-t border-slate-100">
+      
             
 
             
@@ -133,7 +132,7 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
               onDragLeave={() => setIsDraggingTemplate(false)}
               onDrop={handleTemplateDrop}
               onClick={() => templateInputRef.current?.click()}
-              className={`border border-dashed rounded-lg p-3 text-center cursor-pointer transition text-xs ${
+              className={`border border-dashed rounded-lg p-3 text-center cursor-pointer transition text-xs min-h-[140px] flex flex-col items-center justify-center ${
                 isDraggingTemplate
                   ? 'border-emerald-500 bg-emerald-50'
                   : 'border-slate-300 hover:border-emerald-400 bg-white'
@@ -155,10 +154,7 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-slate-200 flex items-center justify-between text-xs">
-            
-            
-          </div>
+          
         </div>
 
       </div>
