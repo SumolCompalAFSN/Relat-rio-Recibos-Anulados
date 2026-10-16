@@ -85,39 +85,8 @@ export default function App() {
     });
   }, [sapRecords, templates, processingDate]);
 
-  // Carrega demonstração inicial automaticamente para que a aplicação venha imediatamente com dados operacionais
-  const loadSampleData = useCallback(() => {
-    setIsLoading(true);
-    setErrorMessage(null);
-    try {
-      const sampleBuffer = generateSampleSapWorkbook(processingDate);
-      parseSapExcel(sampleBuffer).then((result) => {
-        setSapRecords(result.records);
-        setParseInfo(result);
-        setIsLoading(false);
-        try {
-          confetti({
-            particleCount: 50,
-            spread: 60,
-            origin: { y: 0.8 }
-          });
-        } catch {
-          // ignore
-        }
-      });
-    } catch (err: any) {
-      setErrorMessage(err.message || 'Erro ao carregar dados de exemplo.');
-      setIsLoading(false);
-    }
-  }, [processingDate]);
-
-  // Carrega na primeira montagem se ainda não tiver dados
-  useEffect(() => {
-    if (sapRecords.length === 0) {
-      loadSampleData();
-    }
-  }, [loadSampleData, sapRecords.length]);
-
+  
+  
   // Upload de ficheiro Excel SAP
   const handleSapFileUpload = async (file: File) => {
     setIsLoading(true);
@@ -231,7 +200,7 @@ export default function App() {
         onDownloadZip={handleDownloadZip}
         onDownloadEml={handleDownloadEml}
         onOpenTemplateModal={() => setIsTemplateModalOpen(true)}
-        onLoadSampleData={loadSampleData}
+        on={}
         hasData={sapRecords.length > 0}
       />
 
@@ -274,7 +243,6 @@ export default function App() {
         <FileUploadSection
           onSapFileUpload={handleSapFileUpload}
           onTemplateFileUpload={handleTemplateFileUpload}
-          onLoadSampleData={loadSampleData}
           isLoading={isLoading}
           parseInfo={parseInfo}
           processingResult={processingResult}
@@ -330,15 +298,9 @@ export default function App() {
               Nenhum ficheiro SAP de recibos carregado
             </h3>
             <p className="text-xs text-slate-500 max-w-md mx-auto mb-5">
-              Arrasta o ficheiro Excel exportado do SAP para a área superior ou clica no botão abaixo para carregar dados de demonstração da Sumol+Compal.
+              Arrasta o ficheiro Excel exportado do SAP para a área superior ou clique na área de carregamento para selecionar o ficheiro.
             </p>
-            <button
-              type="button"
-              onClick={loadSampleData}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition"
-            >
-              Carregar Dados de Demonstração SAP
-            </button>
+            
           </div>
         )}
       </main>
