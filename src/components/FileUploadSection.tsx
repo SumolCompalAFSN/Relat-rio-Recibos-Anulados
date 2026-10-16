@@ -4,11 +4,6 @@ import {
   FileSpreadsheet,
   CheckCircle2,
   AlertCircle,
-  Sparkles,
-  Download,
-  Filter,
-  Info,
-  Calendar,
   FileCheck
 } from 'lucide-react';
 import { SapParseResult } from '../utils/excelParser';
@@ -17,9 +12,6 @@ import { ProcessingResult, SellerTemplate } from '../types';
 interface FileUploadSectionProps {
   onSapFileUpload: (file: File) => void;
   onTemplateFileUpload: (file: File) => void;
-  onLoadSampleData: () => void;
-  onDownloadSampleSap: () => void;
-  onDownloadSampleTemplate: () => void;
   isLoading: boolean;
   parseInfo: SapParseResult | null;
   processingResult: ProcessingResult | null;
@@ -29,9 +21,6 @@ interface FileUploadSectionProps {
 export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
   onSapFileUpload,
   onTemplateFileUpload,
-  onLoadSampleData,
-  onDownloadSampleSap,
-  onDownloadSampleTemplate,
   isLoading,
   parseInfo,
   processingResult,
@@ -116,14 +105,7 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
 
           {/* Quick template download & sample loader */}
           <div className="flex flex-wrap items-center justify-between gap-2 mt-3 pt-3 border-t border-slate-100">
-            <button
-              type="button"
-              onClick={onLoadSampleData}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-              Carregar Dados Reais de Demonstração (SAP Sumol Compal)
-            </button>
+            
 
             
           </div>
