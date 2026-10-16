@@ -200,7 +200,6 @@ export default function App() {
         onDownloadZip={handleDownloadZip}
         onDownloadEml={handleDownloadEml}
         onOpenTemplateModal={() => setIsTemplateModalOpen(true)}
-        on={}
         hasData={sapRecords.length > 0}
       />
 
