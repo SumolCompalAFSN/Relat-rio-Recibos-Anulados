@@ -4,7 +4,6 @@ import {
   FileCheck,
   Mail,
   RefreshCw,
-  Sparkles,
   SlidersHorizontal,
   Send,
   ChevronDown,
@@ -22,7 +21,6 @@ interface HeaderProps {
   onDownloadZip: () => void;
   onDownloadEml: () => void;
   onOpenTemplateModal: () => void;
-  onLoadSampleData: () => void;
   hasData: boolean;
 }
 
@@ -36,7 +34,6 @@ export const Header: React.FC<HeaderProps> = ({
   onDownloadZip,
   onDownloadEml,
   onOpenModal,
-  onLoadSampleData,
   hasData
 }) => {
   const [isGtMenuOpen, setIsGtMenuOpen] = useState(false);
@@ -93,14 +90,7 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* If no data yet, show sample loader shortcut */}
             {!hasData && (
-              <button
-                type="button"
-                onClick={onLoadSampleData}
-                className="flex items-center gap-1.5 text-xs font-semibold px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-sm transition"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                Carregar Exemplo SAP
-              </button>
+              
             )}
 
             {/* Export Actions if data is loaded */}
