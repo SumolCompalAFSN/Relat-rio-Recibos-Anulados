@@ -88,10 +88,6 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Controls: Date Picker & Actions */}
           <div className="flex flex-wrap items-center gap-2.5">
 
-            {/* If no data yet, show sample loader shortcut */}
-            {!hasData && (
-              
-            )}
 
             {/* Export Actions if data is loaded */}
             {hasData && result && (
