@@ -5,6 +5,8 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
+    base: '/Relat-rio-Recibos-Anulados/',
+    
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
