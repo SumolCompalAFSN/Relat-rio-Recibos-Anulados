@@ -38,7 +38,7 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ kpis, totalUltimos5Dias }) =
         </div>
         <p className="text-[11px] text-slate-500 mt-1 flex items-center gap-1">
           <span className="font-semibold text-emerald-600">Únicos por Nº doc.</span>
-          {kpis.totalDuplicadosIgnorados > 0 && ` (${kpis.totalDuplicadosIgnorados} dup. removidos)`}
+          
         </p>
       </div>
 
