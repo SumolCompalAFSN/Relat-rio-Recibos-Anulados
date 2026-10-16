@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import confetti from 'canvas-confetti';
 import {
   FileCheck,
   AlertCircle,
@@ -95,15 +94,6 @@ export default function App() {
       const result = await parseSapExcel(file);
       setSapRecords(result.records);
       setParseInfo(result);
-      try {
-        confetti({
-          particleCount: 80,
-          spread: 70,
-          origin: { y: 0.6 }
-        });
-      } catch {
-        // ignore
-      }
     } catch (err: any) {
       setErrorMessage(err.message || 'Erro ao processar ficheiro Excel SAP.');
     } finally {
@@ -138,15 +128,7 @@ export default function App() {
       'Email gerado com sucesso! A abrir nova mensagem no Novo Outlook para Windows com cabeçalhos, tabelas e cores formatadas em HTML.'
     );
     setTimeout(() => setSuccessNotification(null), 6000);
-    try {
-      confetti({
-        particleCount: 60,
-        spread: 60,
-        origin: { y: 0.7 }
-      });
-    } catch {
-      // ignore
-    }
+    
   };
 
   // Envio de email individual por GT para o Novo Outlook para Windows (Técnica RVV)
@@ -158,15 +140,7 @@ export default function App() {
       `Email individual para ${gtName} gerado com sucesso! A abrir nova mensagem no Novo Outlook com gráfico da equipa e tabela formatada.`
     );
     setTimeout(() => setSuccessNotification(null), 6000);
-    try {
-      confetti({
-        particleCount: 50,
-        spread: 50,
-        origin: { y: 0.7 }
-      });
-    } catch {
-      // ignore
-    }
+   
   };
 
   const handleOpenEmailPreview = (targetGt?: GtGroup) => {
