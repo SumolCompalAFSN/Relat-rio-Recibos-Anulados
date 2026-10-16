@@ -100,7 +100,7 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
               {isLoading ? 'A processar ficheiro...' : 'Arrasta o ficheiro Excel SAP aqui ou clica para procurar'}
             </p>
             <p className="text-xs text-slate-500 mt-1">
-              Formatos suportados: .XLSX, .XLS (Deduplicação automática por Nº doc.)
+              Formatos suportados: .XLSX, .XLS
             </p>
           </div>
 
