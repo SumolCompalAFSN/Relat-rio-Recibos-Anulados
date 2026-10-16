@@ -210,16 +210,9 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
                 <span className="text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-medium">
                   {parseInfo.uniqueCount} Recibos Únicos
                 </span>
-                {parseInfo.duplicatesRemoved > 0 && (
-                  <span className="text-xs bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
-                    <Filter className="w-3 h-3" />
-                    {parseInfo.duplicatesRemoved} Duplicados Ignorados
-                  </span>
-                )}
+               
               </div>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Regra SAP aplicada: deduplicação rigorosa por <strong className="text-slate-200">Nº doc.</strong> e códigos de vendedor tratados estritamente como texto (ex: "001", "049", "G04").
-              </p>
+              
             </div>
           </div>
 
