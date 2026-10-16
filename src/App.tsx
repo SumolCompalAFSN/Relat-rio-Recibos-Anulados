@@ -278,20 +278,6 @@ export default function App() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 py-5 text-center text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-800">CONTROLO DE RECIBOS ANULADOS</span>
-            <span>&bull;</span>
-            <span>Direção Comercial &bull; Operações SAP</span>
-          </div>
-          <div className="text-[11px] text-slate-400">
-            Regra: Apenas 1 ocorrência por Nº doc. &bull; Códigos GVnd estritamente texto (001, 049, G04) &bull; CC: Paulo Cordeiro, Luis Carril, Fernando Coimbra
-          </div>
-        </div>
-      </footer>
-
       {/* Modals */}
       {processingResult && (
         <EmailPreviewModal
