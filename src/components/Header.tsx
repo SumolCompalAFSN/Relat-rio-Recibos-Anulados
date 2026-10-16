@@ -3,13 +3,10 @@ import {
   Calendar,
   FileCheck,
   Mail,
-  Archive,
-  Download,
   RefreshCw,
   Sparkles,
   SlidersHorizontal,
   Send,
-  Eye,
   ChevronDown,
   Users
 } from 'lucide-react';
@@ -38,7 +35,7 @@ export const Header: React.FC<HeaderProps> = ({
   onSendIndividualGt,
   onDownloadZip,
   onDownloadEml,
-  onOpenTemplateModal,
+  onOpenModal,
   onLoadSampleData,
   hasData
 }) => {
@@ -92,9 +89,6 @@ export const Header: React.FC<HeaderProps> = ({
                   SAP GT Analytics
                 </span>
               </div>
-              <p className="text-xs text-slate-400">
-                Consolidação de anulações SAP &bull; Estatística de 5 Dias Úteis & Acumulado Anual por GT
-              </p>
             </div>
           </div>
 
@@ -121,17 +115,6 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             </div>
 
-            {/* Template Manager Button */}
-            <button
-              type="button"
-              onClick={onOpenTemplateModal}
-              className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition"
-              title="Configurar tabela de correspondência de Vendedores e GT"
-            >
-              <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400" />
-              <span className="hidden sm:inline">Template</span> GT
-            </button>
-
             {/* If no data yet, show sample loader shortcut */}
             {!hasData && (
               <button
@@ -147,15 +130,6 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Export Actions if data is loaded */}
             {hasData && result && (
               <>
-                <button
-                  type="button"
-                  onClick={() => onOpenEmailPreview()}
-                  className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition"
-                  title="Pré-visualizar email HTML formatado"
-                >
-                  <Eye className="w-3.5 h-3.5 text-blue-400" />
-                  <span>Pré-visualizar</span>
-                </button>
 
                 <button
                   type="button"
@@ -262,25 +236,8 @@ export const Header: React.FC<HeaderProps> = ({
                   )}
                 </div>
 
-                <button
-                  type="button"
-                  onClick={onDownloadEml}
-                  className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition"
-                  title="Descarregar ficheiro .EML padrão RFC 822 para o Outlook"
-                >
-                  <Download className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Exportar EML</span>
-                </button>
 
-                <button
-                  type="button"
-                  onClick={onDownloadZip}
-                  className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm shadow-emerald-600/30 transition"
-                  title="Descarregar pacote ZIP completo (HTML + EML + Excel + Relatório)"
-                >
-                  <Archive className="w-3.5 h-3.5" />
-                  <span>Exportar ZIP</span>
-                </button>
+              
               </>
             )}
           </div>
