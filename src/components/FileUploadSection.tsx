@@ -181,7 +181,7 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
           </div>
 
           <div className="mt-4 pt-3 border-t border-slate-200 flex items-center justify-between text-xs">
-            <span className="text-slate-500 text-[11px]">Associação GT ativa</span>
+            
             <button
               type="button"
               onClick={onDownloadSampleTemplate}
