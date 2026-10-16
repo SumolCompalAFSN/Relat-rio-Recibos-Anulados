@@ -90,26 +90,6 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Controls: Date Picker & Actions */}
           <div className="flex flex-wrap items-center gap-2.5">
-            {/* Reference Date Selector */}
-            <div className="flex items-center bg-slate-800/90 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-300">
-              <Calendar className="w-4 h-4 text-blue-400 mr-2 shrink-0" />
-              <span className="mr-2 font-medium text-slate-400">Data Ref.:</span>
-              <input
-                type="date"
-                value={dateStr}
-                onChange={handleDateInput}
-                className="bg-transparent text-white font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 rounded px-1 cursor-pointer"
-                title="Data de processamento de referência"
-              />
-              <button
-                type="button"
-                onClick={setToday}
-                className="ml-1.5 text-[10px] text-blue-300 hover:text-white bg-slate-700/80 hover:bg-slate-700 px-1.5 py-0.5 rounded transition"
-                title="Definir para a data de hoje"
-              >
-                Hoje
-              </button>
-            </div>
 
             {/* If no data yet, show sample loader shortcut */}
             {!hasData && (
