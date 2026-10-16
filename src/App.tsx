@@ -24,8 +24,6 @@ import { DEFAULT_SELLERS_TEMPLATE } from './data/defaultTemplate';
 import {
   parseSapExcel,
   parseTemplateEmails,
-  generateSampleSapWorkbook,
-  generateTemplateEmailsWorkbook,
   SapParseResult
 } from './utils/excelParser';
 import { aggregateSapData } from './utils/aggregator';
@@ -160,23 +158,7 @@ export default function App() {
     }
   };
 
-  // Descarregar ficheiro de modelo SAP
-  const handleDownloadSampleSap = () => {
-    const buffer = generateSampleSapWorkbook(processingDate);
-    const blob = new Blob([buffer.buffer as ArrayBuffer], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    });
-    triggerDownload(blob, `Modelo_SAP_Recibos_Anulados_${processingDate.getFullYear()}.xlsx`);
-  };
-
-  // Descarregar ficheiro de modelo Template_Emails.xlsx
-  const handleDownloadSampleTemplate = () => {
-    const buffer = generateTemplateEmailsWorkbook(templates);
-    const blob = new Blob([buffer.buffer as ArrayBuffer], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    });
-    triggerDownload(blob, 'Template_Emails.xlsx');
-  };
+  
 
   // Envio de email para o Novo Outlook para Windows (Técnica RVV)
   // Gera o rascunho com X-Unsent: 1 e HTML formatado, permitindo revisão manual e clique em Enviar
@@ -293,8 +275,6 @@ export default function App() {
           onSapFileUpload={handleSapFileUpload}
           onTemplateFileUpload={handleTemplateFileUpload}
           onLoadSampleData={loadSampleData}
-          onDownloadSampleSap={handleDownloadSampleSap}
-          onDownloadSampleTemplate={handleDownloadSampleTemplate}
           isLoading={isLoading}
           parseInfo={parseInfo}
           processingResult={processingResult}
