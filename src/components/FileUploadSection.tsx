@@ -102,13 +102,7 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
             <p className="text-xs text-slate-500 mt-1">
               Formatos suportados: .XLSX, .XLS
             </p>
-          </div>
-
-      
-            
-
-            
-          </div>
+          </div>   
         </div>
 
         {/* Secondary Box: Template Vendedores / GT Mapping */}
