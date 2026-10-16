@@ -72,9 +72,6 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
               <FileSpreadsheet className="w-4 h-4 text-blue-600" />
               1. Ficheiro SAP de Recibos Anulados (Excel)
             </label>
-            <span className="text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
-              Colunas obrigatórias: <strong className="text-slate-700">GVnd</strong> e <strong className="text-slate-700">Nº doc.</strong>
-            </span>
           </div>
 
           <div
@@ -152,12 +149,6 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
                 {templatesCount} registados
               </span>
             </div>
-
-            <p className="text-xs text-slate-600 mb-3 leading-relaxed">
-              Base de correspondência de <strong className="text-slate-800">Codigo_3_digitos</strong>,{' '}
-              <strong className="text-slate-800">Nome Vendedor</strong> e{' '}
-              <strong className="text-slate-800">Email GT</strong>.
-            </p>
 
             <div
               onDragOver={(e) => {
