@@ -268,10 +268,10 @@ export default function App() {
               <FileSpreadsheet className="w-8 h-8" />
             </div>
             <h3 className="text-base font-bold text-slate-900 mb-1">
-              Nenhum ficheiro SAP de recibos carregado
+              Nenhum ficheiro SAP carregado
             </h3>
             <p className="text-xs text-slate-500 max-w-md mx-auto mb-5">
-              Arrasta o ficheiro Excel exportado do SAP para a área superior ou clique na área de carregamento para selecionar o ficheiro.
+              Carregue um ficheiro SAP para visualizar os indicadores e relatórios.
             </p>
             
           </div>
