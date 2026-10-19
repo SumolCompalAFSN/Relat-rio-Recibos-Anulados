@@ -100,7 +100,7 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
               {isLoading ? 'A processar ficheiro...' : 'Arrasta o ficheiro Excel SAP aqui ou clica para procurar'}
             </p>
             <p className="text-xs text-slate-500 mt-1">
-              Formatos suportados: .XLSX, .XLS
+              Formatos suportados: XLSX, XLS
             </p>
           </div>   
         </div>
@@ -143,8 +143,8 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
                   }
                 }}
               />
-              <span className="font-semibold text-slate-700 block">Atualizar Template_Emails.xlsx</span>
-              <span className="text-[11px] text-slate-500">Clica para carregar nova versão</span>
+              <span className="font-semibold text-slate-700 block">Template_Emails.xlsx</span>
+              <span className="text-[11px] text-slate-500">Clica para atualizar</span>
             </div>
           </div>
 
