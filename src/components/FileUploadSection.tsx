@@ -106,7 +106,7 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
         </div>
 
         {/* Secondary Box: Template Vendedores / GT Mapping */}
-        <div className="lg:w-96 flex flex-col bg-slate-50 border border-slate-200 rounded-xl p-4">
+        <div className="flex-1 flex flex-col bg-slate-50 border border-slate-200 rounded-xl p-4">
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-bold text-slate-800 flex items-center gap-2">
