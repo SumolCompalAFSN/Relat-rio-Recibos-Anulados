@@ -126,7 +126,7 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
               onDragLeave={() => setIsDraggingTemplate(false)}
               onDrop={handleTemplateDrop}
               onClick={() => templateInputRef.current?.click()}
-              className={`border border-dashed rounded-lg p-3 text-center cursor-pointer transition text-xs min-h-[140px] flex flex-col items-center justify-center ${
+              className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all text-xs min-h-[140px] flex flex-col items-center justify-center ${
                 isDraggingTemplate
                   ? 'border-emerald-500 bg-emerald-50'
                   : 'border-slate-300 hover:border-emerald-400 bg-white'
@@ -143,6 +143,9 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
                   }
                 }}
               />
+              <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 mb-3">
+  <FileCheck className="w-6 h-6" />
+</div>
               <span className="font-semibold text-slate-700 block">Template_Emails.xlsx</span>
               <span className="text-[11px] text-slate-500">Clica para atualizar</span>
             </div>
