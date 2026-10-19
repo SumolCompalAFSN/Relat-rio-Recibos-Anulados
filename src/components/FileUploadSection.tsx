@@ -8,7 +8,7 @@ import {
   Calendar
 } from 'lucide-react';
 import { SapParseResult } from '../utils/excelParser';
-import { ProcessingResult, SellerTemplate } from '../types';
+import { ProcessingResult } from '../types';
 
 interface FileUploadSectionProps {
   onSapFileUpload: (file: File) => void;
@@ -106,7 +106,7 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
         </div>
 
         {/* Secondary Box: Template Vendedores / GT Mapping */}
-        <div className="lg:w-96 flex flex-col justify-between bg-slate-50 border border-slate-200 rounded-xl p-4">
+        <div className="lg:w-96 flex flex-col bg-slate-50 border border-slate-200 rounded-xl p-4">
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-bold text-slate-800 flex items-center gap-2">
@@ -126,7 +126,7 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
               onDragLeave={() => setIsDraggingTemplate(false)}
               onDrop={handleTemplateDrop}
               onClick={() => templateInputRef.current?.click()}
-              className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all text-xs min-h-[140px] flex flex-col items-center justify-center ${
+              className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all text-xs min-h-[160px] flex flex-col items-center justify-center ${
                 isDraggingTemplate
                   ? 'border-emerald-500 bg-emerald-50'
                   : 'border-slate-300 hover:border-emerald-400 bg-white'
@@ -147,7 +147,7 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
   <FileCheck className="w-6 h-6" />
 </div>
               <span className="font-semibold text-slate-700 block">Template_Emails.xlsx</span>
-              <span className="text-[11px] text-slate-500">Clica para atualizar</span>
+              <span className="text-[11px] text-slate-500">Clique para atualizar</span>
             </div>
           </div>
 
